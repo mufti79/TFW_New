@@ -206,7 +206,7 @@ const TicketSalesRoster: React.FC<TicketSalesRosterProps> = ({ counters, ticketS
 
         if(personnel.attendance) {
             attendedBriefing = personnel.attendance.attendedBriefing ? 'Yes' : 'No';
-            briefingTime = personnel.attendance.attendedBriefing ? formatTime(personnel.attendance.briefingTime) : 'N/A';
+            briefingTime = formatTime(personnel.attendance.briefingTime);
         }
         
         const personnelName = `"${personnel.name.replace(/"/g, '""')}"`;
@@ -221,6 +221,94 @@ const TicketSalesRoster: React.FC<TicketSalesRosterProps> = ({ counters, ticketS
     link.href = url;
     const filterText = attendanceFilter !== 'all' ? `_${attendanceFilter}` : '';
     link.setAttribute('download', `ToggiFunWorld_SalesAttendance_${selectedDate}${filterText}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDownloadRoster = () => {
+    if (ticketSalesPersonnel.length === 0) {
+        alert("No personnel data to download.");
+        return;
+    }
+
+    const headers = ['Personnel Name', 'Checked In', 'Attended Briefing', 'Briefing Time', 'Assigned Counters'];
+    
+    const rows = personnelWithAttendance.map((personnel: Operator & { attendance: AttendanceRecord | null }) => {
+        const assignedCounters = assignmentsByPersonnel.get(personnel.id);
+        const counterNames = assignedCounters ? assignedCounters.map(c => c.name).join('; ') : 'N/A';
+        
+        const checkedIn = personnel.attendance ? 'Yes' : 'No';
+        let attendedBriefing = 'N/A';
+        let briefingTime = 'N/A';
+
+        if(personnel.attendance) {
+            attendedBriefing = personnel.attendance.attendedBriefing ? 'Yes' : 'No';
+            briefingTime = formatTime(personnel.attendance.briefingTime);
+        }
+        
+        const personnelName = `"${personnel.name.replace(/"/g, '""')}"`;
+        const counterNamesCsv = `"${counterNames.replace(/"/g, '""')}"`;
+
+        return [personnelName, checkedIn, attendedBriefing, briefingTime, counterNamesCsv].join(',');
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute('download', `ToggiFunWorld_SalesRoster_${selectedDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDownloadAssignments = () => {
+    const assignmentsToday: Record<string, number[]> = dailyAssignments[selectedDate] || {};
+    
+    if (Object.keys(assignmentsToday).length === 0) {
+        alert("No assignments to download for this date.");
+        return;
+    }
+
+    const headers = ['Counter Name', 'Personnel Name(s)'];
+    const counterMap = new Map<string, string>(counters.map(c => [c.id.toString(), c.name]));
+    const personnelMap = new Map<number, string>(ticketSalesPersonnel.map(p => [p.id, p.name]));
+    
+    const rows: Array<{ counterName: string; personnelNames: string }> = [];
+    
+    for (const [counterIdStr, personnelIdValue] of Object.entries(assignmentsToday)) {
+        const counterName = counterMap.get(counterIdStr);
+        if (!counterName) continue;
+        
+        const personnelIds = Array.isArray(personnelIdValue) ? personnelIdValue : [personnelIdValue];
+        const personnelNames = personnelIds
+            .map((id: number) => personnelMap.get(id))
+            .filter(Boolean)
+            .join(', ');
+        
+        if (personnelNames) {
+            rows.push({ counterName, personnelNames });
+        }
+    }
+    
+    // Sort by counter name for consistency
+    rows.sort((a, b) => a.counterName.localeCompare(b.counterName));
+    
+    // Format as CSV
+    const csvRows = rows.map(({ counterName, personnelNames }) => {
+        const counterNameCsv = `"${counterName.replace(/"/g, '""')}"`;
+        const personnelNamesCsv = `"${personnelNames.replace(/"/g, '""')}"`;
+        return [counterNameCsv, personnelNamesCsv].join(',');
+    });
+    
+    const csvContent = [headers.join(','), ...csvRows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute('download', `ToggiFunWorld_SalesAssignments_${selectedDate}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -317,6 +405,18 @@ const TicketSalesRoster: React.FC<TicketSalesRosterProps> = ({ counters, ticketS
                           className="px-3 py-1.5 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 active:scale-95 transition-all text-sm"
                       >
                           DL Attendance
+                      </button>
+                      <button
+                          onClick={handleDownloadRoster}
+                          className="px-3 py-1.5 bg-green-800 text-white font-semibold rounded-md hover:bg-green-700 active:scale-95 transition-all text-sm"
+                      >
+                          DL Roster
+                      </button>
+                      <button
+                          onClick={handleDownloadAssignments}
+                          className="px-3 py-1.5 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 active:scale-95 transition-all text-sm"
+                      >
+                          DL Assignments
                       </button>
                   </div>
                   <button
