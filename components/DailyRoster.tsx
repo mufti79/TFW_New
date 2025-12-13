@@ -267,6 +267,56 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ rides, operators, dailyAssign
     document.body.removeChild(link);
   };
 
+  const handleDownloadAssignments = () => {
+    const assignmentsToday: Record<string, number[]> = dailyAssignments[selectedDate] || {};
+    
+    if (Object.keys(assignmentsToday).length === 0) {
+        alert("No assignments to download for this date.");
+        return;
+    }
+
+    const headers = ['Ride Name', 'Operator Name(s)'];
+    const rideMap = new Map<string, string>(rides.map(r => [r.id.toString(), r.name]));
+    const operatorMap = new Map<number, string>(operators.map(o => [o.id, o.name]));
+    
+    const rows: Array<{ rideName: string; operatorNames: string }> = [];
+    
+    for (const [rideId, operatorIdValue] of Object.entries(assignmentsToday)) {
+        const rideName = rideMap.get(rideId);
+        if (!rideName) continue;
+        
+        const operatorIds = Array.isArray(operatorIdValue) ? operatorIdValue : [operatorIdValue];
+        const operatorNames = operatorIds
+            .map((id: number) => operatorMap.get(id))
+            .filter(Boolean)
+            .join(', ');
+        
+        if (operatorNames) {
+            rows.push({ rideName, operatorNames });
+        }
+    }
+    
+    // Sort by ride name for consistency
+    rows.sort((a, b) => a.rideName.localeCompare(b.rideName));
+    
+    // Format as CSV
+    const csvRows = rows.map(({ rideName, operatorNames }) => {
+        const rideNameCsv = `"${rideName.replace(/"/g, '""')}"`;
+        const operatorNamesCsv = `"${operatorNames.replace(/"/g, '""')}"`;
+        return [rideNameCsv, operatorNamesCsv].join(',');
+    });
+    
+    const csvContent = [headers.join(','), ...csvRows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute('download', `ToggiFunWorld_Assignments_${selectedDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const isRosterEmpty = operatorsWithAttendance.length === 0;
   const isManager = role === 'admin' || role === 'operation-officer';
 
@@ -436,6 +486,12 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ rides, operators, dailyAssign
                       className="px-3 py-1.5 bg-green-800 text-white font-semibold rounded-md hover:bg-green-700 active:scale-95 transition-all text-sm"
                   >
                       DL Roster
+                  </button>
+                  <button
+                      onClick={handleDownloadAssignments}
+                      className="px-3 py-1.5 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 active:scale-95 transition-all text-sm"
+                  >
+                      DL Assignments
                   </button>
                 </div>
                 <button
