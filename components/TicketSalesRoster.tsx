@@ -206,7 +206,7 @@ const TicketSalesRoster: React.FC<TicketSalesRosterProps> = ({ counters, ticketS
 
         if(personnel.attendance) {
             attendedBriefing = personnel.attendance.attendedBriefing ? 'Yes' : 'No';
-            briefingTime = personnel.attendance.attendedBriefing ? formatTime(personnel.attendance.briefingTime) : 'N/A';
+            briefingTime = formatTime(personnel.attendance.briefingTime);
         }
         
         const personnelName = `"${personnel.name.replace(/"/g, '""')}"`;
