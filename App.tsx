@@ -648,15 +648,39 @@ const AppContent: React.FC = () => {
     };
 
     const handleSaveAssignments = (date: string, assignmentsForDate: Record<string, number[]>) => {
-        setDailyAssignments(prev => ({ ...prev, [date]: assignmentsForDate }));
-        logAction('SAVE_ASSIGNMENTS', `Operator assignments saved for ${date}.`);
-        showNotification('Operator assignments saved!', 'success');
+        if (!isFirebaseConfigured) {
+            showNotification('Cannot save assignments, Firebase is not configured.', 'error');
+            return;
+        }
+        
+        // Directly write to Firebase to ensure the data is persisted immediately
+        database.ref(`data/operatorAssignments/${date}`).set(assignmentsForDate)
+            .then(() => {
+                logAction('SAVE_ASSIGNMENTS', `Operator assignments saved for ${date}.`);
+                showNotification('Operator assignments saved!', 'success');
+            })
+            .catch(error => {
+                console.error("Firebase assignment save failed:", error);
+                showNotification('Failed to save assignments. Check connection.', 'error');
+            });
     };
     
     const handleSaveTicketSalesAssignments = (date: string, assignmentsForDate: Record<string, number[]>) => {
-        setTicketSalesAssignments(prev => ({ ...prev, [date]: assignmentsForDate }));
-        logAction('SAVE_TS_ASSIGNMENTS', `Ticket sales assignments saved for ${date}.`);
-        showNotification('Ticket sales assignments saved!', 'success');
+        if (!isFirebaseConfigured) {
+            showNotification('Cannot save assignments, Firebase is not configured.', 'error');
+            return;
+        }
+        
+        // Directly write to Firebase to ensure the data is persisted immediately
+        database.ref(`data/ticketSalesAssignments/${date}`).set(assignmentsForDate)
+            .then(() => {
+                logAction('SAVE_TS_ASSIGNMENTS', `Ticket sales assignments saved for ${date}.`);
+                showNotification('Ticket sales assignments saved!', 'success');
+            })
+            .catch(error => {
+                console.error("Firebase ticket sales assignment save failed:", error);
+                showNotification('Failed to save ticket sales assignments. Check connection.', 'error');
+            });
     };
 
     const handleClearHistory = () => {
