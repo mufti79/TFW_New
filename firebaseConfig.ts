@@ -3,10 +3,10 @@
 
 // IMPORTANT:
 // This is the SHARED Firebase configuration used by both TFW_New and TFW-OPS-Sales.
-// Both applications use the SAME Firebase database (TFW-OPS-Sales database).
+// Both applications use the SAME Firebase database.
 // 
 // To configure this app:
-// 1. Use the Firebase project from TFW-OPS-Sales (or create one if it doesn't exist)
+// 1. Use the shared Firebase project (TFW-OPS-Sales database, or create one if it doesn't exist)
 // 2. In your Firebase project, create a new Web App if needed
 // 3. Copy the firebaseConfig object provided by Firebase
 // 4. Paste it here, replacing the configuration below
@@ -19,10 +19,10 @@
 //        }
 //      }
 //
-// NOTE: This configuration should match the TFW-OPS-Sales database credentials.
-// There is only ONE database shared between both applications.
+// NOTE: Both TFW_New and TFW-OPS-Sales applications should use the same credentials.
+// There is only ONE shared database for both applications.
 
-// Shared Firebase configuration (TFW-OPS-Sales database)
+// Shared Firebase configuration for both TFW_New and TFW-OPS-Sales
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAqOf6utAgmO-NXqbPTnBO3BdD7yCUBbW8",
