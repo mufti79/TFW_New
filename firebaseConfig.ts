@@ -2,13 +2,15 @@
 // This comment is to suppress TypeScript errors in a file that uses a global `firebase` object.
 
 // IMPORTANT:
-// To get this app working, you need to create your own Firebase project and
-// replace the configuration object below with your project's credentials.
-// 1. Go to https://console.firebase.google.com/ and create a new project.
-// 2. In your project, create a new Web App.
-// 3. Copy the firebaseConfig object provided by Firebase.
-// 4. Paste it here, replacing the placeholder object.
-// 5. In your Firebase project, go to "Realtime Database" and create one.
+// This is the SHARED Firebase configuration used by both TFW_New and TFW-OPS-Sales.
+// Both applications use the SAME Firebase database (TFW-OPS-Sales database).
+// 
+// To configure this app:
+// 1. Use the Firebase project from TFW-OPS-Sales (or create one if it doesn't exist)
+// 2. In your Firebase project, create a new Web App if needed
+// 3. Copy the firebaseConfig object provided by Firebase
+// 4. Paste it here, replacing the configuration below
+// 5. In your Firebase project, go to "Realtime Database" and create one if needed
 //    - Make sure to set the security rules to allow read/write for development:
 //      {
 //        "rules": {
@@ -16,8 +18,11 @@
 //          ".write": "true"
 //        }
 //      }
+//
+// NOTE: This configuration should match the TFW-OPS-Sales database credentials.
+// There is only ONE database shared between both applications.
 
-// Your web app's Firebase configuration
+// Shared Firebase configuration (TFW-OPS-Sales database)
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAqOf6utAgmO-NXqbPTnBO3BdD7yCUBbW8",

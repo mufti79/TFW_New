@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNotification } from '../imageStore';
 import { Ride, Operator } from '../types';
-import { isTfwOpsSalesConfigured } from '../syncUtils';
 
 interface BackupManagerProps {
   onClose: () => void;
@@ -171,23 +170,6 @@ const BackupManager: React.FC<BackupManagerProps> = ({ onClose, onExport, onImpo
             <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors" aria-label="Close modal">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
-          </div>
-          
-          {/* TFW-ops-sales Sync Configuration Status */}
-          <div className="mb-6 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
-            <h3 className="text-xl font-bold text-cyan-400 mb-2">TFW-ops-sales Database Sync</h3>
-            <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${isTfwOpsSalesConfigured ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span className={`text-sm font-semibold ${isTfwOpsSalesConfigured ? 'text-green-400' : 'text-red-400'}`}>
-                {isTfwOpsSalesConfigured ? 'Configured' : 'Not Configured'}
-              </span>
-            </div>
-            <p className="text-sm text-gray-400 mt-2">
-              {isTfwOpsSalesConfigured 
-                ? 'Sync functionality is enabled. Use the "Sync to Ops-Sales" button in roster views to push roster data.'
-                : 'To enable sync, configure Firebase credentials in tfwOpsSalesConfig.ts. See SYNC_SETUP.md for details.'
-              }
-            </p>
           </div>
           
            <div className="border-t border-gray-600 pt-6">
