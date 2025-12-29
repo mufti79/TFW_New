@@ -5,8 +5,6 @@ import { Role } from '../hooks/useAuth';
 import BriefingCheckin from './BriefingCheckin';
 // FIX: Add missing import for Counter component to resolve 'Cannot find name Counter' error.
 import Counter from './Counter';
-import { syncRosterToOpsSales, isTfwOpsSalesConfigured } from '../syncUtils';
-import { useNotification } from '../imageStore';
 
 type View = 'counter' | 'reports' | 'assignments' | 'expertise' | 'roster';
 type Modal = 'edit-image' | 'ai-assistant' | 'operators' | 'backup' | null;
@@ -319,33 +317,6 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ rides, operators, dailyAssign
     document.body.removeChild(link);
   };
 
-  const { showNotification } = useNotification();
-  const [isSyncing, setIsSyncing] = useState(false);
-
-  const handleSyncToOpsSales = async () => {
-    setIsSyncing(true);
-    try {
-      const assignmentsToday = dailyAssignments[selectedDate] || {};
-      const result = await syncRosterToOpsSales(
-        selectedDate,
-        assignmentsToday,
-        operators,
-        attendance,
-        'operator'
-      );
-
-      if (result.success) {
-        showNotification(result.message, 'success');
-      } else {
-        showNotification(result.message, 'error');
-      }
-    } catch (error) {
-      showNotification('Failed to sync roster to TFW-ops-sales', 'error');
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
   const isRosterEmpty = operatorsWithAttendance.length === 0;
   const isManager = role === 'admin' || role === 'operation-officer';
 
@@ -522,19 +493,6 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ rides, operators, dailyAssign
                   >
                       DL Assignments
                   </button>
-                  {isTfwOpsSalesConfigured && (
-                    <button
-                        onClick={handleSyncToOpsSales}
-                        disabled={isSyncing}
-                        className={`px-3 py-1.5 text-white font-semibold rounded-md transition-all text-sm ${
-                          isSyncing 
-                            ? 'bg-gray-500 cursor-not-allowed' 
-                            : 'bg-teal-600 hover:bg-teal-700 active:scale-95'
-                        }`}
-                    >
-                        {isSyncing ? 'Syncing...' : 'Sync to Ops-Sales'}
-                    </button>
-                  )}
                 </div>
                 <button
                   onClick={() => onNavigate('assignments')}
