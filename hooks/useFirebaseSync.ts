@@ -63,8 +63,9 @@ function useFirebaseSync<T>(
                 return value(baseData);
             }).then((result) => {
                 // Update local state with the committed value after successful transaction
-                if (result.committed && result.snapshot.exists()) {
-                    setStoredValue(result.snapshot.val());
+                if (result.committed) {
+                    const newValue = result.snapshot.exists() ? result.snapshot.val() : initialValueRef.current;
+                    setStoredValue(newValue);
                 }
             }).catch(error => {
                 console.error(`Firebase transaction error at path "${path}":`, error);
