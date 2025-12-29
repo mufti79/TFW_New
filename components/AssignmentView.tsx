@@ -225,7 +225,7 @@ const AssignmentView: React.FC<AssignmentViewProps> = ({ rides, operators, daily
       return;
     }
     
-    const csvContent = [headers.join(','), ...rows].join('\n');
+    const csvContent = [headers.map(h => `"${h}"`).join(','), ...rows].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
