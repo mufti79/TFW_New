@@ -27,6 +27,7 @@
 const firebaseConfig = {
   apiKey: "AIzaSyAqOf6utAgmO-NXqbPTnBO3BdD7yCUBbW8",
   authDomain: "toggifunworld-app.firebaseapp.com",
+  databaseURL: "https://toggifunworld-app-default-rtdb.firebaseio.com",
   projectId: "toggifunworld-app",
   storageBucket: "toggifunworld-app.firebasestorage.app",
   messagingSenderId: "718439883778",
