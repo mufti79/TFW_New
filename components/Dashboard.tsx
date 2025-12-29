@@ -42,7 +42,9 @@ const Dashboard: React.FC<DashboardProps> = ({ ridesWithCounts, operators, atten
     const ridesAwaitingCount = ridesWithCounts
         .filter(ride => ride.count === 0 && assignmentsToday[ride.id])
         .map(ride => {
-            const operatorIds = assignmentsToday[ride.id] || [];
+            // FIX: Handle both old (number) and new (number[]) data formats, with null/undefined check
+            const operatorIdValue = assignmentsToday[ride.id];
+            const operatorIds = Array.isArray(operatorIdValue) ? operatorIdValue : (operatorIdValue ? [operatorIdValue] : []);
             const operatorNames = operatorIds
                 .map(id => operatorMap.get(id))
                 .filter(Boolean) as string[];
