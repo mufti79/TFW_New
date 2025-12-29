@@ -120,10 +120,7 @@ const TicketSalesRoster: React.FC<TicketSalesRosterProps> = ({ counters, ticketS
     if (onSyncData) {
       onSyncData();
     }
-    // Show syncing state for a moment to give visual feedback
-    setTimeout(() => {
-      setIsSyncing(false);
-    }, 1000);
+    // Note: isSyncing state will be reset by page reload in App.tsx
   };
   
   const formatTime = (timeStr: string | null): string => {

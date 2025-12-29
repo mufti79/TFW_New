@@ -900,10 +900,15 @@ const AppContent: React.FC = () => {
     const handleSyncData = useCallback(() => {
         showNotification('Syncing data from database...', 'info', 2000);
         logAction('MANUAL_SYNC', 'User triggered manual data sync/refresh.');
-        // Force a page reload to ensure all data is fresh from Firebase
+        
+        // Since the app uses Firebase real-time listeners, a page reload ensures:
+        // 1. All listeners reconnect and pull fresh data
+        // 2. Any stale state is cleared
+        // 3. User sees the most up-to-date information
+        // This is simpler and more reliable than trying to manually refresh each data source
         setTimeout(() => {
             window.location.reload();
-        }, 1000);
+        }, 1500);
     }, [logAction, showNotification]);
 
 
