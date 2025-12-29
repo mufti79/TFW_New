@@ -55,23 +55,21 @@ function useFirebaseSync<T>(
     try {
         const dbRef = database.ref(path);
         if (value instanceof Function) {
-            // Use a transaction for function-based updates to ensure atomicity and avoid race conditions.
-            dbRef.transaction((currentData) => {
-                // If there's no data in Firebase, the transaction callback receives `null`.
-                // We should use the initial value as the base in that case.
-                const baseData = currentData === null ? initialValueRef.current : currentData;
-                return value(baseData);
-            }).then((result) => {
-                // Update local state with the committed value after successful transaction
-                if (result.committed) {
-                    const newValue = result.snapshot.exists() ? result.snapshot.val() : initialValueRef.current;
-                    setStoredValue(newValue);
-                }
+            // For function-based updates, compute the new value first, then use set() instead of transaction
+            // This avoids transaction conflicts and ensures immediate local state update
+            dbRef.once('value').then((snapshot) => {
+                const currentData = snapshot.exists() ? snapshot.val() : initialValueRef.current;
+                const newValue = value(currentData);
+                // Update local state immediately for better UX
+                setStoredValue(newValue);
+                // Then persist to Firebase
+                return dbRef.set(newValue);
             }).catch(error => {
-                console.error(`Firebase transaction error at path "${path}":`, error);
+                console.error(`Firebase function-based update error at path "${path}":`, error);
             });
         } else {
-            // For direct value sets, just use `set`. This overwrites all data at the location.
+            // For direct value sets, update local state immediately and persist to Firebase
+            setStoredValue(value);
             dbRef.set(value).catch(error => {
                 console.error(`Firebase write error at path "${path}":`, error);
             });
