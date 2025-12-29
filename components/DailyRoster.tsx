@@ -64,7 +64,7 @@ const MaintenanceSection: React.FC<{
                     <p><strong>Problem:</strong> {ticket.problem}</p>
                     <p><strong>Reported:</strong> {formatTime(ticket.reportedAt)} by {ticket.reportedByName}</p>
                     {ticket.status !== 'reported' && ticket.assignedToName && (
-                        <p><strong>concern:</strong> {ticket.assignedToName} ({formatTime(ticket.inProgressAt)})</p>
+                        <p><strong>Assigned to:</strong> {ticket.assignedToName} ({formatTime(ticket.inProgressAt)})</p>
                     )}
                     {ticket.status === 'solved' && (
                         <p><strong>Solved:</strong> {formatTime(ticket.solvedAt)}</p>
