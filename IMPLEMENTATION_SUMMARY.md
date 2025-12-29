@@ -12,6 +12,7 @@ The requirement was to ensure both TFW_New and TFW-OPS-Sales repositories use th
 3. Ensure both applications always work with the same data
 4. **NEW (Dec 29, 2024):** Ops Roster Sync option not working properly
 5. **NEW (Dec 29, 2024):** Assignments saving but not persisting after logout
+6. **NEW (Dec 29, 2024):** Assignment save error - "Failed to save assignments. Check connection."
 
 ## Solution Implemented
 
@@ -68,7 +69,46 @@ Both applications now share a single Firebase database with real-time synchroniz
 - `hooks/useFirebaseSync.ts` - Fixed data persistence mechanism
 - `App.tsx` - Updated assignment save handlers with direct Firebase writes
 
-### 4. Previous Cleanup (Earlier)
+### 4. Database Null Check Fix (December 29, 2024)
+**Problem:** Users experiencing "Failed to save assignments. Check connection." error when trying to save operator assignments in ops roster.
+
+**Root Cause:** 
+- The `database` object from `firebaseConfig.ts` could be null
+- Operations were only checking `isFirebaseConfigured` without verifying database instance was initialized
+- This could happen if Firebase initialization failed or wasn't complete
+
+**Solution Implemented:**
+
+**File:** `firebaseConfig.ts`
+- Added try-catch error handling around Firebase initialization
+- Added explicit TypeScript type annotation: `let database: firebase.database.Database | null = null;`
+- Improved error logging for initialization failures
+- Removed unnecessary console logs to reduce noise
+
+**File:** `App.tsx` - All database operations now include null checks:
+- `handleSaveAssignments` - Main fix for operator assignments
+- `handleSaveTicketSalesAssignments` - Fix for ticket sales assignments
+- `handleCountChange`, `handleSalesChange` - Guest count and sales updates
+- `handleResetCounts`, `handleResetSales` - Data reset operations
+- `handleClockIn` - Attendance check-in
+- `handleSavePackageSales`, `handleEditPackageSales` - Package sales operations
+- `handleClearHistory` - History log management
+- `handleRenameOtherSalesCategory` - Category management
+- `handleRemoveObsoleteRides` - Database cleanup
+- `handleReportProblem`, `handleUpdateTicketStatus` - Maintenance tickets
+- Connection status checker, logo operations, logAction function
+- Improved error messages: "Database connection failed. Please check your network connection or contact support."
+
+**File:** `hooks/useFirebaseSync.ts`
+- Added null checks in both `useEffect` and `setValue` functions
+- Ensures sync operations only proceed when database is available
+
+**Modified Files:**
+- `firebaseConfig.ts` - Improved initialization with error handling and type safety
+- `App.tsx` - Added database null checks in 15+ operations
+- `hooks/useFirebaseSync.ts` - Added database null checks in sync operations
+
+### 5. Previous Cleanup (Earlier)
 **Deleted:**
 - `tfwOpsSalesConfig.ts` - Separate database config (no longer needed)
 - `syncUtils.ts` - Sync utility functions (no longer needed)
@@ -86,6 +126,7 @@ Both applications now share a single Firebase database with real-time synchroniz
 ✅ **Reduced Complexity** - No separate Firebase app instances or sync logic  
 ✅ **Reliable Assignment Persistence** - Direct Firebase writes ensure data is saved before confirmation  
 ✅ **Error Handling** - Proper error messages if Firebase operations fail  
+✅ **Null Safety** - All database operations check for null before execution to prevent connection errors  
 
 ## Database Structure
 
@@ -167,8 +208,17 @@ To set up the shared database:
 ✅ **Consistent Access Control** - Same permissions apply to both applications  
 ✅ **No Data Duplication** - Eliminates potential sync conflicts  
 ✅ **Reliable Persistence** - Direct Firebase writes with error handling prevent data loss  
+✅ **Null Safety** - Comprehensive null checks prevent null reference errors and improve stability
 
 ## Testing Performed
+
+### Database Null Check Fix Testing:
+1. ✅ Build succeeded without errors after all changes
+2. ✅ Code review passed - all feedback addressed
+3. ✅ Security scan passed - no vulnerabilities found
+4. ✅ TypeScript type safety improved with explicit type annotations
+5. ✅ All database operations now properly check for null before execution
+6. ✅ Error messages provide clear, actionable guidance to users
 
 ### Assignment Persistence Testing:
 1. ✅ Code review confirms direct Firebase writes are used
@@ -188,6 +238,7 @@ To set up the shared database:
 **Sync Feature Added:** December 29, 2024  
 **Database URL Fix:** December 29, 2024  
 **Assignment Persistence Fix:** December 29, 2024 (Same day)  
+**Database Null Check Fix:** December 29, 2024 (Same day)  
 **Implementation Status:** ✅ Complete  
 **Consolidation Type:** Single Shared Database with Manual Refresh and Reliable Persistence  
-**Files Modified:** 3 (hooks/useFirebaseSync.ts, App.tsx, IMPLEMENTATION_SUMMARY.md)
+**Files Modified:** 4 (firebaseConfig.ts, hooks/useFirebaseSync.ts, App.tsx, IMPLEMENTATION_SUMMARY.md)

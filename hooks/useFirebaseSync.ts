@@ -10,7 +10,7 @@ function useFirebaseSync<T>(
   const initialValueRef = useRef(initialValue);
 
   useEffect(() => {
-    if (!isFirebaseConfigured) {
+    if (!isFirebaseConfigured || !database) {
         return;
     }
     
@@ -46,7 +46,7 @@ function useFirebaseSync<T>(
   }, [path]);
 
   const setValue: Dispatch<SetStateAction<T>> = useCallback((value) => {
-    if (!isFirebaseConfigured) {
+    if (!isFirebaseConfigured || !database) {
       console.warn(`Firebase is not configured. Data for "${path}" will not be saved.`);
       setStoredValue(value);
       return;
