@@ -653,6 +653,12 @@ const AppContent: React.FC = () => {
             return;
         }
         
+        if (!database) {
+            showNotification('Database connection not initialized. Please refresh the page.', 'error');
+            console.error('Database object is null');
+            return;
+        }
+        
         // Directly write to Firebase to ensure the data is persisted immediately
         database.ref(`data/operatorAssignments/${date}`).set(assignmentsForDate)
             .then(() => {
@@ -668,6 +674,12 @@ const AppContent: React.FC = () => {
     const handleSaveTicketSalesAssignments = (date: string, assignmentsForDate: Record<string, number[]>) => {
         if (!isFirebaseConfigured) {
             showNotification('Cannot save assignments, Firebase is not configured.', 'error');
+            return;
+        }
+        
+        if (!database) {
+            showNotification('Database connection not initialized. Please refresh the page.', 'error');
+            console.error('Database object is null');
             return;
         }
         
