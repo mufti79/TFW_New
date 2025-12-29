@@ -11,9 +11,11 @@ View your app in AI Studio: https://ai.studio/apps/drive/1yXx0FlqI6tJ3MDON-_UrxB
 ## Features
 
 - **Ride Operations Management** - Track guest counts across all rides and attractions
-- **Operator Roster System** - Manage operator assignments and attendance
+- **Operator Roster System** - Manage operator assignments and attendance with real-time sync
 - **Ticket Sales Tracking** - Monitor sales across multiple counters
 - **Maintenance Dashboard** - Report and track maintenance issues
+- **Shared Database** - TFW_New and TFW_OPS_Sales use the same Firebase database for data consistency
+- **Manual Sync** - Refresh button to force reload latest data from database when needed
 
 ## Run Locally
 

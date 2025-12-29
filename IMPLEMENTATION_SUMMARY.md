@@ -1,31 +1,41 @@
-# Implementation Summary: Database Consolidation
+# Implementation Summary: Database Consolidation and Manual Sync
 
 ## Overview
 
-Successfully consolidated TFW_New and TFW-OPS-Sales to use a single shared Firebase database, removing the need for separate databases and sync functionality.
+Successfully consolidated TFW_New and TFW-OPS-Sales to use a single shared Firebase database with manual sync/refresh functionality for optimal data consistency.
 
 ## Problem Statement
 
-The requirement was to ensure both TFW_New and TFW-OPS-Sales repositories use the same Firebase database. Previously, there were:
-1. A separate TFW_New database configuration
-2. A separate TFW-OPS-Sales database configuration (with placeholder values)
-3. Sync functionality to push data between the two databases
-
-The goal: **Only one database should exist, shared by both applications.**
+The requirement was to ensure both TFW_New and TFW-OPS-Sales repositories use the same Firebase database with ability to sync/refresh roster data:
+1. Both apps were showing different attendance data (TFW_New showing all absent, TFW_OPS_Sales showing present)
+2. Need for updating roster in TFW_New with sync capability
+3. Ensure both applications always work with the same data
 
 ## Solution Implemented
 
-Removed all separate database configurations and sync functionality. Updated `firebaseConfig.ts` to serve as the single, shared database configuration for both TFW_New and TFW-OPS-Sales.
+Both applications now share a single Firebase database with real-time synchronization and manual refresh capability.
 
 ## Implementation Details
 
 ### 1. Database Configuration
 **File:** `firebaseConfig.ts`
 - Updated comments to clarify this is a SHARED configuration for both applications
-- Both TFW_New and TFW-OPS-Sales now use the same Firebase database (TFW-OPS-Sales database)
+- Both TFW_New and TFW-OPS-Sales now use the same Firebase database
 - No separate database instances needed
 
-### 2. Removed Files
+### 2. Manual Sync Feature (December 29, 2024)
+**Added:**
+- Sync button in both DailyRoster and TicketSalesRoster components (visible to managers only)
+- Visual feedback with spinning icon during sync
+- Force reload functionality to ensure fresh data from Firebase
+- Action logging for sync operations
+
+**Modified Files:**
+- `components/DailyRoster.tsx` - Added sync button and onSyncData prop
+- `components/TicketSalesRoster.tsx` - Added sync button and onSyncData prop  
+- `App.tsx` - Added handleSyncData function and connected to roster components
+
+### 3. Previous Cleanup (Earlier)
 **Deleted:**
 - `tfwOpsSalesConfig.ts` - Separate database config (no longer needed)
 - `syncUtils.ts` - Sync utility functions (no longer needed)
@@ -33,21 +43,13 @@ Removed all separate database configurations and sync functionality. Updated `fi
 - `SYNC_QUICK_START.md` - Quick start guide (obsolete)
 - `SYNC_VISUAL_GUIDE.md` - Visual guide (obsolete)
 
-### 3. Updated Components
-**Modified Files:**
-- `components/DailyRoster.tsx` - Removed sync button and sync functionality
-- `components/TicketSalesRoster.tsx` - Removed sync button and sync functionality
-- `components/BackupManager.tsx` - Removed sync status indicator section
-- `README.md` - Removed sync feature references
-- `IMPLEMENTATION_SUMMARY.md` - Updated to reflect database consolidation (this file)
-
 ## Key Changes
 
 ✅ **Single Database** - One Firebase database used by both applications  
-✅ **No Sync Needed** - Both apps read/write to the same database directly  
+✅ **Real-time Sync** - Both apps read/write to the same database directly with Firebase real-time listeners  
+✅ **Manual Refresh** - Sync button available to force reload data from database  
 ✅ **Simplified Configuration** - Only one `firebaseConfig.ts` to maintain  
-✅ **Cleaner Codebase** - Removed ~500+ lines of sync-related code  
-✅ **Better Performance** - No sync operations needed, instant data availability  
+✅ **Visual Feedback** - Spinner animation and notifications during sync operations  
 ✅ **Reduced Complexity** - No separate Firebase app instances or sync logic  
 
 ## Database Structure
@@ -73,8 +75,24 @@ Both TFW_New and TFW-OPS-Sales now access the same Firebase Realtime Database wi
 1. **Data Consistency** - Both applications always see the same data in real-time
 2. **Simplified Maintenance** - Only one database to manage and configure
 3. **Cost Efficiency** - Single Firebase project instead of two
-4. **No Sync Delays** - Changes are immediately available to both applications
-5. **Reduced Complexity** - No sync buttons, sync status checks, or sync error handling needed
+4. **Real-time Updates** - Changes are immediately available to both applications via Firebase listeners
+5. **Manual Refresh** - Sync button available when users need to force refresh data
+6. **Better UX** - Visual feedback during sync operations with spinner animations
+
+## How to Use the Sync Feature
+
+### For Managers/Admins:
+1. Navigate to either **Ops Roster** or **Sales Roster** view
+2. Look for the **Sync** button (cyan/teal colored) near the date selector
+3. Click **Sync** to manually refresh roster data from the database
+4. The button will show a spinner and "Syncing..." text while refreshing
+5. The page will reload automatically to display the latest data
+
+### When to Use Sync:
+- When you've updated roster assignments in one app and want to ensure you see the latest data
+- If real-time updates appear delayed (due to network issues)
+- After making critical attendance or assignment changes
+- When switching between TFW_New and TFW_OPS_Sales applications
 
 ## Configuration Instructions
 
@@ -93,8 +111,8 @@ To set up the shared database:
 
 ---
 
-**Implementation Date:** December 29, 2024  
+**Initial Implementation Date:** December 29, 2024  
+**Sync Feature Added:** December 29, 2024  
 **Implementation Status:** ✅ Complete  
-**Consolidation Type:** Single Shared Database  
-**Files Removed:** 5 (sync-related files)  
-**Files Modified:** 5 (removed sync functionality)
+**Consolidation Type:** Single Shared Database with Manual Refresh  
+**Files Modified:** 3 (added sync functionality to roster components)
