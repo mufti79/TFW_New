@@ -241,6 +241,7 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ rides, operators, dailyAssign
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handleDownloadAttendanceReport = () => {
@@ -275,6 +276,7 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ rides, operators, dailyAssign
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handleDownloadAssignments = () => {
@@ -325,6 +327,7 @@ const DailyRoster: React.FC<DailyRosterProps> = ({ rides, operators, dailyAssign
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const isRosterEmpty = operatorsWithAttendance.length === 0;
