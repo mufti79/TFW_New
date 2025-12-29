@@ -180,6 +180,110 @@ const AssignmentView: React.FC<AssignmentViewProps> = ({ rides, operators, daily
     };
     reader.readAsArrayBuffer(file);
   };
+
+  const handleExportAssignments = () => {
+    if (Object.keys(assignments).length === 0) {
+      showNotification('No assignments to export for this date.', 'warning');
+      return;
+    }
+
+    // Create header row
+    const headers = ['Ride Name', 'Operator Name(s)'];
+    
+    // Create data rows
+    const rideMap = new Map<string, string>(rides.map(r => [r.id.toString(), r.name]));
+    const operatorMap = new Map<number, string>(operators.map(o => [o.id, o.name]));
+    
+    const rows: string[] = [];
+    
+    // Sort by ride name for consistency
+    const sortedAssignments = Object.entries(assignments).sort((a, b) => {
+      const rideName1 = rideMap.get(a[0]) || '';
+      const rideName2 = rideMap.get(b[0]) || '';
+      return rideName1.localeCompare(rideName2);
+    });
+    
+    for (const [rideId, operatorIdValue] of sortedAssignments) {
+      const rideName = rideMap.get(rideId);
+      if (!rideName) continue;
+      
+      const operatorIds = Array.isArray(operatorIdValue) ? operatorIdValue : [operatorIdValue];
+      const operatorNames = operatorIds
+        .map((id: number) => operatorMap.get(id))
+        .filter(Boolean)
+        .join(', ');
+      
+      if (operatorNames) {
+        const rideNameCsv = `"${rideName.replace(/"/g, '""')}"`;
+        const operatorNamesCsv = `"${operatorNames.replace(/"/g, '""')}"`;
+        rows.push([rideNameCsv, operatorNamesCsv].join(','));
+      }
+    }
+    
+    if (rows.length === 0) {
+      showNotification('No valid assignments to export.', 'warning');
+      return;
+    }
+    
+    const csvContent = [headers.map(h => `"${h}"`).join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute('download', `Operator_Assignments_${selectedDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    showNotification(`Exported ${rows.length} assignments successfully!`, 'success');
+  };
+
+  const handleCopyFromDate = () => {
+    const sourceDate = prompt('Enter the date to copy assignments from (YYYY-MM-DD):');
+    if (!sourceDate) return;
+    
+    // Validate date format
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(sourceDate)) {
+      showNotification('Invalid date format. Please use YYYY-MM-DD.', 'error');
+      return;
+    }
+    
+    // Validate it's a real date
+    const [year, month, day] = sourceDate.split('-').map(Number);
+    const dateObj = new Date(year, month - 1, day);
+    if (dateObj.getFullYear() !== year || dateObj.getMonth() !== month - 1 || dateObj.getDate() !== day) {
+      showNotification('Invalid date. Please enter a valid date.', 'error');
+      return;
+    }
+    
+    // Check if source date has assignments
+    const sourceAssignments = dailyAssignments[sourceDate];
+    if (!sourceAssignments || Object.keys(sourceAssignments).length === 0) {
+      showNotification(`No assignments found for ${sourceDate}.`, 'warning');
+      return;
+    }
+    
+    // Confirm before copying
+    const assignmentCount = Object.keys(sourceAssignments).length;
+    const confirmMsg = `Copy ${assignmentCount} assignments from ${sourceDate} to ${selectedDate}? This will merge with existing assignments.`;
+    if (!window.confirm(confirmMsg)) return;
+    
+    // Merge source assignments with current assignments
+    setAssignments(prev => {
+      const merged = { ...prev };
+      for (const [rideId, operatorIds] of Object.entries(sourceAssignments)) {
+        const currentIds = merged[rideId] || [];
+        const sourceIds = Array.isArray(operatorIds) ? operatorIds : [operatorIds];
+        // Combine and deduplicate
+        merged[rideId] = Array.from(new Set([...currentIds, ...sourceIds]));
+      }
+      return merged;
+    });
+    
+    showNotification(`Copied ${assignmentCount} assignments from ${sourceDate}. Remember to save!`, 'success');
+  };
   
   const [year, month, day] = selectedDate.split('-').map(Number);
   const displayDate = new Date(year, month - 1, day);
@@ -197,6 +301,19 @@ const AssignmentView: React.FC<AssignmentViewProps> = ({ rides, operators, daily
                   className="w-full sm:w-auto px-4 py-2 text-sm bg-teal-600 text-white font-bold rounded-lg hover:bg-teal-700 active:scale-95 transition-all"
               >
                   Import
+              </button>
+              <button
+                  onClick={handleExportAssignments}
+                  className="w-full sm:w-auto px-4 py-2 text-sm bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 active:scale-95 transition-all"
+              >
+                  Export
+              </button>
+              <button
+                  onClick={handleCopyFromDate}
+                  className="w-full sm:w-auto px-4 py-2 text-sm bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 active:scale-95 transition-all"
+                  title="Copy assignments from another date"
+              >
+                  Copy from Date
               </button>
                <button
                   onClick={handleClearAll}
@@ -222,7 +339,7 @@ const AssignmentView: React.FC<AssignmentViewProps> = ({ rides, operators, daily
           <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700">
             <div className="p-4 bg-gray-700/50 text-gray-300">
                 <p>Assign one or more operators below, or use the "Import" button to upload an Excel/CSV file.</p>
-                <p className="text-sm text-gray-400">In Excel, the file should have two columns: Ride Name and Operator Name(s). You can list multiple operators in the second column separated by a comma.</p>
+                <p className="text-sm text-gray-400">Use "Export" to download current assignments in CSV format for syncing with TFW-OPS-Sales. Use "Copy from Date" to quickly replicate assignments from another date. The exported file has two columns: Ride Name and Operator Name(s), with multiple operators separated by commas.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-700">
                 {rides.map((ride) => {

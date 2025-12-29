@@ -178,6 +178,110 @@ const TicketSalesAssignmentView: React.FC<TicketSalesAssignmentViewProps> = ({ c
     };
     reader.readAsArrayBuffer(file);
   };
+
+  const handleExportAssignments = () => {
+    if (Object.keys(assignments).length === 0) {
+      showNotification('No assignments to export for this date.', 'warning');
+      return;
+    }
+
+    // Create header row
+    const headers = ['Counter Name', 'Personnel Name(s)'];
+    
+    // Create data rows
+    const counterMap = new Map<string, string>(counters.map(c => [c.id.toString(), c.name]));
+    const personnelMap = new Map<number, string>(ticketSalesPersonnel.map(p => [p.id, p.name]));
+    
+    const rows: string[] = [];
+    
+    // Sort by counter name for consistency
+    const sortedAssignments = Object.entries(assignments).sort((a, b) => {
+      const counterName1 = counterMap.get(a[0]) || '';
+      const counterName2 = counterMap.get(b[0]) || '';
+      return counterName1.localeCompare(counterName2);
+    });
+    
+    for (const [counterId, personnelIdValue] of sortedAssignments) {
+      const counterName = counterMap.get(counterId);
+      if (!counterName) continue;
+      
+      const personnelIds = Array.isArray(personnelIdValue) ? personnelIdValue : [personnelIdValue];
+      const personnelNames = personnelIds
+        .map((id: number) => personnelMap.get(id))
+        .filter(Boolean)
+        .join(', ');
+      
+      if (personnelNames) {
+        const counterNameCsv = `"${counterName.replace(/"/g, '""')}"`;
+        const personnelNamesCsv = `"${personnelNames.replace(/"/g, '""')}"`;
+        rows.push([counterNameCsv, personnelNamesCsv].join(','));
+      }
+    }
+    
+    if (rows.length === 0) {
+      showNotification('No valid assignments to export.', 'warning');
+      return;
+    }
+    
+    const csvContent = [headers.map(h => `"${h}"`).join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute('download', `Sales_Assignments_${selectedDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    showNotification(`Exported ${rows.length} assignments successfully!`, 'success');
+  };
+
+  const handleCopyFromDate = () => {
+    const sourceDate = prompt('Enter the date to copy assignments from (YYYY-MM-DD):');
+    if (!sourceDate) return;
+    
+    // Validate date format
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(sourceDate)) {
+      showNotification('Invalid date format. Please use YYYY-MM-DD.', 'error');
+      return;
+    }
+    
+    // Validate it's a real date
+    const [year, month, day] = sourceDate.split('-').map(Number);
+    const dateObj = new Date(year, month - 1, day);
+    if (dateObj.getFullYear() !== year || dateObj.getMonth() !== month - 1 || dateObj.getDate() !== day) {
+      showNotification('Invalid date. Please enter a valid date.', 'error');
+      return;
+    }
+    
+    // Check if source date has assignments
+    const sourceAssignments = dailyAssignments[sourceDate];
+    if (!sourceAssignments || Object.keys(sourceAssignments).length === 0) {
+      showNotification(`No assignments found for ${sourceDate}.`, 'warning');
+      return;
+    }
+    
+    // Confirm before copying
+    const assignmentCount = Object.keys(sourceAssignments).length;
+    const confirmMsg = `Copy ${assignmentCount} assignments from ${sourceDate} to ${selectedDate}? This will merge with existing assignments.`;
+    if (!window.confirm(confirmMsg)) return;
+    
+    // Merge source assignments with current assignments
+    setAssignments(prev => {
+      const merged = { ...prev };
+      for (const [counterId, personnelIds] of Object.entries(sourceAssignments)) {
+        const currentIds = merged[counterId] || [];
+        const sourceIds = Array.isArray(personnelIds) ? personnelIds : [personnelIds];
+        // Combine and deduplicate
+        merged[counterId] = Array.from(new Set([...currentIds, ...sourceIds]));
+      }
+      return merged;
+    });
+    
+    showNotification(`Copied ${assignmentCount} assignments from ${sourceDate}. Remember to save!`, 'success');
+  };
   
   const [year, month, day] = selectedDate.split('-').map(Number);
   const displayDate = new Date(year, month - 1, day);
@@ -195,6 +299,19 @@ const TicketSalesAssignmentView: React.FC<TicketSalesAssignmentViewProps> = ({ c
                   className="w-full sm:w-auto px-4 py-2 text-sm bg-teal-600 text-white font-bold rounded-lg hover:bg-teal-700 active:scale-95 transition-all"
               >
                   Import
+              </button>
+              <button
+                  onClick={handleExportAssignments}
+                  className="w-full sm:w-auto px-4 py-2 text-sm bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 active:scale-95 transition-all"
+              >
+                  Export
+              </button>
+              <button
+                  onClick={handleCopyFromDate}
+                  className="w-full sm:w-auto px-4 py-2 text-sm bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 active:scale-95 transition-all"
+                  title="Copy assignments from another date"
+              >
+                  Copy from Date
               </button>
                <button
                   onClick={handleClearAll}
@@ -220,7 +337,7 @@ const TicketSalesAssignmentView: React.FC<TicketSalesAssignmentViewProps> = ({ c
           <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700">
             <div className="p-4 bg-gray-700/50 text-gray-300">
                 <p>Assign one or more personnel below, or use the "Import" button to upload an Excel/CSV file.</p>
-                <p className="text-sm text-gray-400">In Excel, the file should have two columns: Counter Name and Personnel Name(s). You can list multiple names in the second column separated by a comma.</p>
+                <p className="text-sm text-gray-400">Use "Export" to download current assignments in CSV format for syncing with TFW-OPS-Sales. Use "Copy from Date" to quickly replicate assignments from another date. The exported file has two columns: Counter Name and Personnel Name(s), with multiple names separated by commas.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-700">
                 {counters.map((counter) => {
