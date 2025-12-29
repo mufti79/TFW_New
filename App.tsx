@@ -187,7 +187,7 @@ const AppContent: React.FC = () => {
             return;
         }
         if (!database) {
-            showNotification("Database connection not initialized. Please refresh the page.", "error");
+            showNotification("Database connection failed. Please check your network connection or contact support.", "error");
             return;
         }
         database.ref('config/appLogo').set(newLogo)
@@ -658,7 +658,7 @@ const AppContent: React.FC = () => {
         }
         
         if (!database) {
-            showNotification('Database connection not initialized. Please refresh the page.', 'error');
+            showNotification('Database connection failed. Please check your network connection or contact support.', 'error');
             console.error('Database object is null');
             return;
         }
@@ -682,7 +682,7 @@ const AppContent: React.FC = () => {
         }
         
         if (!database) {
-            showNotification('Database connection not initialized. Please refresh the page.', 'error');
+            showNotification('Database connection failed. Please check your network connection or contact support.', 'error');
             console.error('Database object is null');
             return;
         }

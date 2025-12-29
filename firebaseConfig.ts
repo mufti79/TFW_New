@@ -41,16 +41,14 @@ export const isFirebaseConfigured = firebaseConfig.projectId !== "YOUR_PROJECT_I
 
 // Initialize Firebase only if it's configured and not already initialized.
 // It uses the global `firebase` object from the script tags in index.html.
-let database = null;
+let database: firebase.database.Database | null = null;
 
 if (isFirebaseConfigured) {
   try {
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
-      console.log('Firebase initialized successfully');
     }
     database = firebase.database();
-    console.log('Firebase database instance created');
   } catch (error) {
     console.error('Failed to initialize Firebase:', error);
     database = null;
