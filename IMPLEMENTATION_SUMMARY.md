@@ -22,6 +22,10 @@ Both applications now share a single Firebase database with real-time synchroniz
 - Updated comments to clarify this is a SHARED configuration for both applications
 - Both TFW_New and TFW-OPS-Sales now use the same Firebase database
 - No separate database instances needed
+- **CRITICAL FIX (Dec 29, 2024):** Added missing `databaseURL` property to Firebase configuration
+  - Added: `databaseURL: "https://toggifunworld-app-default-rtdb.firebaseio.com"`
+  - This was causing TFW_New to not connect to the correct database, resulting in incorrect attendance data
+  - Without this URL, Firebase SDK couldn't properly connect to the Realtime Database
 
 ### 2. Manual Sync Feature (December 29, 2024)
 **Added:**
@@ -100,8 +104,11 @@ To set up the shared database:
 
 1. Use the Firebase project credentials from TFW-OPS-Sales
 2. Update `firebaseConfig.ts` with the shared database credentials
-3. Deploy both TFW_New and TFW-OPS-Sales with the same configuration
-4. Both applications will now access the same data
+3. **IMPORTANT:** Ensure the `databaseURL` property is included in the configuration
+   - Format: `https://<project-id>-default-rtdb.firebaseio.com`
+   - This is required for Firebase Realtime Database to function properly
+4. Deploy both TFW_New and TFW-OPS-Sales with the same configuration
+5. Both applications will now access the same data
 
 ## Security Considerations
 
@@ -113,6 +120,7 @@ To set up the shared database:
 
 **Initial Implementation Date:** December 29, 2024  
 **Sync Feature Added:** December 29, 2024  
+**Database URL Fix:** December 29, 2024  
 **Implementation Status:** ✅ Complete  
 **Consolidation Type:** Single Shared Database with Manual Refresh  
 **Files Modified:** 3 (added sync functionality to roster components)
