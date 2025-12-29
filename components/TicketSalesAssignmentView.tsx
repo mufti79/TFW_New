@@ -248,6 +248,14 @@ const TicketSalesAssignmentView: React.FC<TicketSalesAssignmentViewProps> = ({ c
       return;
     }
     
+    // Validate it's a real date
+    const [year, month, day] = sourceDate.split('-').map(Number);
+    const dateObj = new Date(year, month - 1, day);
+    if (dateObj.getFullYear() !== year || dateObj.getMonth() !== month - 1 || dateObj.getDate() !== day) {
+      showNotification('Invalid date. Please enter a valid date.', 'error');
+      return;
+    }
+    
     // Check if source date has assignments
     const sourceAssignments = dailyAssignments[sourceDate];
     if (!sourceAssignments || Object.keys(sourceAssignments).length === 0) {
