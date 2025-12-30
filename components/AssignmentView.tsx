@@ -19,12 +19,29 @@ const AssignmentView: React.FC<AssignmentViewProps> = ({ rides, operators, daily
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<'up' | 'down'>('down');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const { showNotification } = useNotification();
   
   // Sync local state with prop from Firebase
   useEffect(() => {
     setAssignments(dailyAssignments[selectedDate] || {});
   }, [selectedDate, dailyAssignments]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openDropdownId !== null && dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    if (openDropdownId !== null) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [openDropdownId]);
 
   const isDirty = useMemo(() => {
     const currentRemoteAssignments = dailyAssignments[selectedDate] || {};
@@ -354,7 +371,7 @@ const AssignmentView: React.FC<AssignmentViewProps> = ({ rides, operators, daily
                         <div key={ride.id} className="p-4 bg-gray-800">
                             <h3 className="font-bold text-lg">{ride.name}</h3>
                             <p className="text-sm text-gray-400 mb-2">{ride.floor} Floor</p>
-                            <div className="relative">
+                            <div className="relative" ref={openDropdownId === ride.id ? dropdownRef : null}>
                                 <button
                                     onClick={(e) => handleToggleDropdown(e, ride.id)}
                                     className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-left truncate"
