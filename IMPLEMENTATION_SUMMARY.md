@@ -145,7 +145,39 @@ Both applications now share a single Firebase database with real-time synchroniz
 3. Use the "Import" button in the other repository to load the exported file
 4. Assignments are seamlessly transferred between repositories
 
-### 6. Previous Cleanup (Earlier)
+### 6. Clear All Button Auto-Save Fix (December 30, 2024)
+**Problem:** The "Clear All" button in Assignment views only cleared local state without saving to Firebase. Users expected this action to persist immediately so other repositories (like TFW-OPS-Sales) could sync the cleared roster data.
+
+**Root Cause:**
+- The `handleClearAll()` function in both AssignmentView and TicketSalesAssignmentView only called `setAssignments({})` to clear local state
+- It did not trigger a Firebase save operation
+- Users had to manually click "Save Changes" after clearing, which was not intuitive
+- This caused confusion when trying to sync cleared data with other repositories
+
+**Solution Implemented:**
+
+**File:** `components/AssignmentView.tsx`
+- Modified `handleClearAll()` to call `onSave(selectedDate, {})` after clearing local state
+- This ensures cleared assignments are immediately persisted to Firebase
+- Other repositories can now immediately see and sync the cleared roster data
+
+**File:** `components/TicketSalesAssignmentView.tsx`
+- Modified `handleClearAll()` to call `onSave(selectedDate, {})` after clearing local state
+- This ensures cleared ticket sales assignments are immediately persisted to Firebase
+- Other repositories can now immediately see and sync the cleared roster data
+
+**Benefits:**
+- "Clear All" button now automatically saves changes to Firebase
+- Users don't need to remember to click "Save Changes" after clearing
+- Immediate synchronization with TFW-OPS-Sales and other repositories
+- More intuitive user experience
+- Consistent with user expectations for destructive operations
+
+**Modified Files:**
+- `components/AssignmentView.tsx` - Added Firebase save to handleClearAll
+- `components/TicketSalesAssignmentView.tsx` - Added Firebase save to handleClearAll
+
+### 7. Previous Cleanup (Earlier)
 **Deleted:**
 - `tfwOpsSalesConfig.ts` - Separate database config (no longer needed)
 - `syncUtils.ts` - Sync utility functions (no longer needed)
