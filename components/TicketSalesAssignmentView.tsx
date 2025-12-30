@@ -82,6 +82,8 @@ const TicketSalesAssignmentView: React.FC<TicketSalesAssignmentViewProps> = ({ c
   const handleClearAll = () => {
     if (window.confirm("Are you sure you want to clear all of today's assignments?")) {
         setAssignments({});
+        // Automatically save the cleared state to Firebase
+        onSave(selectedDate, {});
     }
   };
 
