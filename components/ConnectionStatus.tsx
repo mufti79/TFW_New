@@ -14,23 +14,26 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ status, showLabel =
       color: 'bg-yellow-500', 
       text: 'Connecting to Firebase...', 
       bgColor: 'bg-yellow-900/30',
-      borderColor: 'border-yellow-500/50'
+      borderColor: 'border-yellow-500/50',
+      textColor: 'text-yellow-300'
     },
     connected: { 
       color: 'bg-green-500', 
       text: 'Firebase Connected - Real-time sync active', 
       bgColor: 'bg-green-900/30',
-      borderColor: 'border-green-500/50'
+      borderColor: 'border-green-500/50',
+      textColor: 'text-green-300'
     },
     disconnected: { 
       color: 'bg-red-500', 
       text: 'Disconnected from Firebase - Changes will not be saved', 
       bgColor: 'bg-red-900/30',
-      borderColor: 'border-red-500/50'
+      borderColor: 'border-red-500/50',
+      textColor: 'text-red-300'
     },
   };
 
-  const { color, text } = statusConfig[status];
+  const { color, text, bgColor, borderColor, textColor } = statusConfig[status];
   
   const sizeConfig = {
     small: { dot: 'w-3 h-3', text: 'text-xs', padding: 'px-2 py-1' },
@@ -50,9 +53,9 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ status, showLabel =
   }
 
   return (
-    <div className={`flex items-center gap-2 ${padding} rounded-lg ${statusConfig[status].bgColor} border ${statusConfig[status].borderColor}`} title={text}>
+    <div className={`flex items-center gap-2 ${padding} rounded-lg ${bgColor} border ${borderColor}`} title={text}>
       <span className={`${dot} rounded-full ${color} ${status !== 'connected' ? 'animate-pulse' : ''}`} />
-      <span className={`${textSize} font-medium ${status === 'connected' ? 'text-green-300' : status === 'connecting' ? 'text-yellow-300' : 'text-red-300'}`}>
+      <span className={`${textSize} font-medium ${textColor}`}>
         {text}
       </span>
     </div>
