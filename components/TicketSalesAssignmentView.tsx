@@ -1,6 +1,7 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { Counter, Operator, AttendanceRecord } from '../types';
 import { useNotification } from '../imageStore';
+import ConnectionStatus from './ConnectionStatus';
 
 // Make sure XLSX is available from the script tag in index.html
 declare var XLSX: any;
@@ -12,9 +13,10 @@ interface TicketSalesAssignmentViewProps {
   onSave: (date: string, assignments: Record<string, number[]>) => void;
   selectedDate: string;
   attendance: AttendanceRecord[];
+  connectionStatus: 'connecting' | 'connected' | 'disconnected';
 }
 
-const TicketSalesAssignmentView: React.FC<TicketSalesAssignmentViewProps> = ({ counters, ticketSalesPersonnel, dailyAssignments, onSave, selectedDate, attendance }) => {
+const TicketSalesAssignmentView: React.FC<TicketSalesAssignmentViewProps> = ({ counters, ticketSalesPersonnel, dailyAssignments, onSave, selectedDate, attendance, connectionStatus }) => {
   const [assignments, setAssignments] = useState<Record<string, number[]>>({});
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<'up' | 'down'>('down');
@@ -309,6 +311,11 @@ const TicketSalesAssignmentView: React.FC<TicketSalesAssignmentViewProps> = ({ c
 
   return (
     <div className="flex flex-col">
+      {/* Firebase Connection Status for Assignment View */}
+      <div className="mb-4">
+        <ConnectionStatus status={connectionStatus} showLabel={true} size="medium" />
+      </div>
+      
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
           <h1 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-500">
               Ticket Sales Assignments for {displayDate.toLocaleDateString()}
@@ -342,14 +349,16 @@ const TicketSalesAssignmentView: React.FC<TicketSalesAssignmentViewProps> = ({ c
               </button>
               <button
                   onClick={handleSave}
-                  disabled={!isDirty}
+                  disabled={!isDirty || connectionStatus !== 'connected'}
                   className={`w-full sm:w-auto px-6 py-2 text-sm font-bold rounded-lg active:scale-95 transition-all ${
-                    isDirty 
+                    connectionStatus !== 'connected'
+                    ? 'bg-gray-600 text-gray-400 cursor-not-allowed opacity-50'
+                    : isDirty 
                     ? 'bg-yellow-500 text-gray-900 hover:bg-yellow-400 animate-pulse' 
                     : 'bg-green-600 text-white opacity-75 cursor-default'
                 }`}
               >
-                  {isDirty ? 'Save Changes' : 'All Saved'}
+                  {connectionStatus !== 'connected' ? 'No Connection' : isDirty ? 'Save Changes' : 'All Saved'}
               </button>
           </div>
       </div>

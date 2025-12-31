@@ -16,6 +16,13 @@ View your app in AI Studio: https://ai.studio/apps/drive/1yXx0FlqI6tJ3MDON-_UrxB
 - **Maintenance Dashboard** - Report and track maintenance issues
 - **Shared Database** - TFW_New and TFW_OPS_Sales use the same Firebase database for data consistency
 - **Manual Sync** - Refresh button to force reload latest data from database when needed
+- **Firebase Connection Status** - Visual indicators showing real-time Firebase connection status
+- **Assignment Roster Management** - Save and manage operator and sales assignments with Firebase persistence
+
+## Documentation
+
+- **[Firebase Connection & Assignment Guide](./FIREBASE_CONNECTION_GUIDE.md)** - Comprehensive guide on Firebase connection status and saving assignments
+- **[Implementation Summary](./IMPLEMENTATION_SUMMARY.md)** - Detailed technical implementation notes
 
 ## Run Locally
 
