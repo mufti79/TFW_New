@@ -192,7 +192,7 @@ const TicketSalesRoster: React.FC<TicketSalesRosterProps> = ({ counters, ticketS
     const absentCount = personnelWithAttendance.length - presentCount;
 
     return { assignmentsByPersonnel, assignmentsByCounter, unassignedCounters, personnelWithAttendance, presentCount, absentCount };
-  }, [localAssignments, counters, ticketSalesPersonnel, attendance, selectedDate]);
+  }, [localAssignments, counters, ticketSalesPersonnel, attendance]);
 
 
   const filteredPersonnel = useMemo(() => {
