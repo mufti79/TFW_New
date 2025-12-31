@@ -161,7 +161,7 @@ const Header: React.FC<HeaderProps> = ({
 
 
           <div className="hidden md:flex items-center ml-4 md:ml-6 space-x-4">
-            <ConnectionStatus status={connectionStatus} />
+            <ConnectionStatus status={connectionStatus} showLabel={false} />
             
             {isAdmin && <button onClick={() => onShowModal('ai-assistant')} className={navLinkClasses}>AI Assistant</button>}
             {isAdmin && <button onClick={() => onShowModal('operators')} className={navLinkClasses}>Operators</button>}
@@ -227,7 +227,7 @@ const Header: React.FC<HeaderProps> = ({
               </button>
             </div>
              <div className="mt-3 px-5 flex items-center">
-                 <ConnectionStatus status={connectionStatus} />
+                 <ConnectionStatus status={connectionStatus} showLabel={false} />
             </div>
           </div>
         </div>

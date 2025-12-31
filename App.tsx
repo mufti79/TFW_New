@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useCallback, useEffect, useRef, ReactNode } from 'react';
 import { RIDES, FLOORS, OPERATORS, TICKET_SALES_PERSONNEL, COUNTERS, RIDES_ARRAY, OPERATORS_ARRAY, TICKET_SALES_PERSONNEL_ARRAY, COUNTERS_ARRAY, MAINTENANCE_PERSONNEL, MAINTENANCE_PERSONNEL_ARRAY } from './constants';
 // FIX: Imported PackageSalesData to resolve a type error.
@@ -33,7 +32,7 @@ import SalesOfficerDashboard from './components/SalesOfficerDashboard';
 import ConfigErrorScreen from './components/ConfigErrorScreen';
 import Dashboard from './components/Dashboard';
 import MaintenanceDashboard from './components/MaintenanceDashboard';
-
+import ConnectionStatus from './components/ConnectionStatus';
 
 
 // Notification System Implementation
@@ -986,13 +985,13 @@ const AppContent: React.FC = () => {
         switch (currentView) {
             case 'dashboard': return <Dashboard ridesWithCounts={ridesWithCounts} operators={operators} attendance={attendanceArray} historyLog={historyLog} onNavigate={handleNavigate} selectedDate={selectedDate} onDateChange={setSelectedDate} dailyAssignments={dailyAssignments} />;
             case 'reports': return <Reports dailyCounts={dailyCounts} rides={rides} />;
-            case 'assignments': return <AssignmentView rides={rides} operators={operators} dailyAssignments={dailyAssignments} onSave={handleSaveAssignments} selectedDate={selectedDate} attendance={attendanceArray} />;
+            case 'assignments': return <AssignmentView rides={rides} operators={operators} dailyAssignments={dailyAssignments} onSave={handleSaveAssignments} selectedDate={selectedDate} attendance={attendanceArray} connectionStatus={connectionStatus} />;
             case 'expertise': return <ExpertiseReport operators={operators} dailyAssignments={dailyAssignments} rides={rides} />;
             case 'roster':
                 const ridesForRoster = rides.map(ride => ({ ...ride, count: dailyCounts[selectedDate]?.[ride.id] || 0 }));
                 return <DailyRoster rides={ridesForRoster} operators={operators} dailyAssignments={dailyAssignments} selectedDate={selectedDate} onDateChange={setSelectedDate} role={role} currentUser={currentUser} attendance={attendanceArray} onNavigate={handleNavigate} onCountChange={handleCountChange} onShowModal={handleShowModal} hasCheckedInToday={hasCheckedInToday} onClockIn={handleClockIn} isCheckinAllowed={isCheckinAllowed} maintenanceTickets={maintenanceTickets[selectedDate] || {}} onReportProblem={handleReportProblem} onSyncData={handleSyncData} />;
             case 'ticket-sales-dashboard': return <TicketSalesView countersWithSales={countersWithSales} onSalesChange={handleSalesChange} />;
-            case 'ts-assignments': return <TicketSalesAssignmentView counters={counters} ticketSalesPersonnel={ticketSalesPersonnel} dailyAssignments={ticketSalesAssignments} onSave={handleSaveTicketSalesAssignments} selectedDate={selectedDate} attendance={attendanceArray} />;
+            case 'ts-assignments': return <TicketSalesAssignmentView counters={counters} ticketSalesPersonnel={ticketSalesPersonnel} dailyAssignments={ticketSalesAssignments} onSave={handleSaveTicketSalesAssignments} selectedDate={selectedDate} attendance={attendanceArray} connectionStatus={connectionStatus} />;
             case 'ts-roster': return <TicketSalesRoster counters={counters} ticketSalesPersonnel={ticketSalesPersonnel} dailyAssignments={ticketSalesAssignments} selectedDate={selectedDate} onDateChange={setSelectedDate} role={role} currentUser={currentUser} attendance={attendanceArray} onNavigate={handleNavigate} onSaveAssignments={handleSaveTicketSalesAssignments} hasCheckedInToday={hasCheckedInToday} onClockIn={handleClockIn} isCheckinAllowed={isCheckinAllowed} onSyncData={handleSyncData} />;
             case 'ts-expertise': return <TicketSalesExpertiseReport ticketSalesPersonnel={ticketSalesPersonnel} dailyAssignments={ticketSalesAssignments} counters={counters}/>;
             case 'history': return <HistoryLog history={historyLog} onClearHistory={handleClearHistory} />;
@@ -1012,6 +1011,16 @@ const AppContent: React.FC = () => {
         <div className="flex flex-col min-h-screen">
             {(role === 'operator' || role === 'ticket-sales') && <KioskModeWrapper />}
             <Header onSearch={setSearchTerm} onSelectFloor={setSelectedFloor} selectedFloor={selectedFloor} role={role} currentUser={currentUser} onLogout={handleLogout} onNavigate={handleNavigate} onShowModal={handleShowModal} currentView={currentView} connectionStatus={connectionStatus} appLogo={appLogo} />
+            
+            {/* Firebase Connection Status Banner */}
+            {connectionStatus !== 'connected' && (
+                <div className="w-full">
+                    <div className="container mx-auto px-4 py-2">
+                        <ConnectionStatus status={connectionStatus} showLabel={true} size="medium" />
+                    </div>
+                </div>
+            )}
+            
             <main className="container mx-auto p-4 flex-grow">{renderContent()}</main>
             {currentView === 'counter' && <Footer title="Total Guests Today" count={totalGuests} showReset={role === 'admin'} onReset={handleResetCounts} gradient="bg-gradient-to-r from-purple-400 to-pink-600" />}
             {currentView === 'ticket-sales-dashboard' && <Footer title="Total Ticket Sales Today" count={totalSales} showReset={role === 'admin' || role === 'sales-officer'} onReset={handleResetSales} gradient="bg-gradient-to-r from-teal-400 to-cyan-500" />}
