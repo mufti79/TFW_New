@@ -114,6 +114,13 @@ const TicketSalesRoster: React.FC<TicketSalesRosterProps> = ({ counters, ticketS
   const [attendanceFilter, setAttendanceFilter] = useState<'all' | 'present' | 'absent'>('all');
   const [manageModalInfo, setManageModalInfo] = useState<Counter | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  // FIX: Add local state for assignments to prevent race conditions when saving
+  const [localAssignments, setLocalAssignments] = useState<Record<string, number[]>>({});
+  
+  // FIX: Sync local assignments with Firebase data when date or dailyAssignments change
+  useEffect(() => {
+    setLocalAssignments(dailyAssignments[selectedDate] || {});
+  }, [selectedDate, dailyAssignments]);
   
   const handleSyncData = () => {
     setIsSyncing(true);
@@ -134,7 +141,8 @@ const TicketSalesRoster: React.FC<TicketSalesRosterProps> = ({ counters, ticketS
   };
 
   const { assignmentsByPersonnel, assignmentsByCounter, unassignedCounters, personnelWithAttendance, presentCount, absentCount } = useMemo(() => {
-    const assignmentsToday: Record<string, any> = dailyAssignments[selectedDate] || {};
+    // FIX: Use localAssignments instead of dailyAssignments to ensure we're working with latest local state
+    const assignmentsToday: Record<string, any> = localAssignments;
     const counterMap = new Map(counters.map(c => [c.id.toString(), c]));
     
     const assignmentsByPersonnel = new Map<number, Counter[]>();
@@ -184,7 +192,7 @@ const TicketSalesRoster: React.FC<TicketSalesRosterProps> = ({ counters, ticketS
     const absentCount = personnelWithAttendance.length - presentCount;
 
     return { assignmentsByPersonnel, assignmentsByCounter, unassignedCounters, personnelWithAttendance, presentCount, absentCount };
-  }, [dailyAssignments, selectedDate, counters, ticketSalesPersonnel, attendance]);
+  }, [localAssignments, counters, ticketSalesPersonnel, attendance]);
 
 
   const filteredPersonnel = useMemo(() => {
@@ -275,7 +283,8 @@ const TicketSalesRoster: React.FC<TicketSalesRosterProps> = ({ counters, ticketS
   };
 
   const handleDownloadAssignments = () => {
-    const assignmentsToday: Record<string, number[]> = dailyAssignments[selectedDate] || {};
+    // FIX: Use localAssignments instead of dailyAssignments[selectedDate]
+    const assignmentsToday: Record<string, number[]> = localAssignments;
     
     if (Object.keys(assignmentsToday).length === 0) {
         alert("No assignments to download for this date.");
@@ -325,13 +334,16 @@ const TicketSalesRoster: React.FC<TicketSalesRosterProps> = ({ counters, ticketS
   };
   
     const handleManageAssignmentsSave = (counterId: number, newPersonnelIds: number[]) => {
-        const currentAssignments = dailyAssignments[selectedDate] || {};
-        const updatedAssignments = {...currentAssignments};
+        // FIX: Use localAssignments to get current state, update it locally and in Firebase
+        const updatedAssignments = {...localAssignments};
         if (newPersonnelIds.length > 0) {
             updatedAssignments[counterId] = newPersonnelIds;
         } else {
             delete updatedAssignments[counterId];
         }
+        // Update local state immediately for better UX
+        setLocalAssignments(updatedAssignments);
+        // Persist to Firebase
         onSaveAssignments(selectedDate, updatedAssignments);
     };
 
