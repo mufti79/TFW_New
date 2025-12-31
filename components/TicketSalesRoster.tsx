@@ -334,17 +334,38 @@ const TicketSalesRoster: React.FC<TicketSalesRosterProps> = ({ counters, ticketS
   };
   
     const handleManageAssignmentsSave = (counterId: number, newPersonnelIds: number[]) => {
-        // FIX: Use localAssignments to get current state, update it locally and in Firebase
+        // Update local assignments without immediately saving to Firebase
         const updatedAssignments = {...localAssignments};
         if (newPersonnelIds.length > 0) {
             updatedAssignments[counterId] = newPersonnelIds;
         } else {
             delete updatedAssignments[counterId];
         }
-        // Update local state immediately for better UX
+        // Update local state - save will happen when user clicks "Save All Changes"
         setLocalAssignments(updatedAssignments);
-        // Persist to Firebase
-        onSaveAssignments(selectedDate, updatedAssignments);
+    };
+
+    // Check if there are unsaved changes
+    const isDirty = useMemo(() => {
+        const currentRemoteAssignments = dailyAssignments[selectedDate] || {};
+        return JSON.stringify(localAssignments) !== JSON.stringify(currentRemoteAssignments);
+    }, [localAssignments, dailyAssignments, selectedDate]);
+
+    // Prevent leaving with unsaved changes
+    useEffect(() => {
+        if (!isDirty) return;
+        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+            event.preventDefault();
+            event.returnValue = ''; // Required for Chrome
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [isDirty]);
+
+    const handleSaveAllChanges = () => {
+        onSaveAssignments(selectedDate, localAssignments);
     };
 
   const isRosterEmpty = personnelWithAttendance.length === 0;
@@ -452,6 +473,18 @@ const TicketSalesRoster: React.FC<TicketSalesRosterProps> = ({ counters, ticketS
                           DL Assignments
                       </button>
                   </div>
+                  <button
+                      onClick={handleSaveAllChanges}
+                      disabled={!isDirty}
+                      className={`px-6 py-2 text-sm font-bold rounded-lg active:scale-95 transition-all ${
+                        isDirty 
+                        ? 'bg-yellow-500 text-gray-900 hover:bg-yellow-400 animate-pulse' 
+                        : 'bg-green-600 text-white opacity-75 cursor-default'
+                      }`}
+                      title="Save all assignment changes to database"
+                  >
+                      {isDirty ? 'Save All Changes' : 'All Saved'}
+                  </button>
                   <button
                     onClick={() => onNavigate('ts-assignments')}
                     className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 active:scale-95 transition-all text-sm"
