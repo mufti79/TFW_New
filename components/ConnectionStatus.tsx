@@ -13,27 +13,24 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ status, showLabel =
     connecting: { 
       color: 'bg-yellow-500', 
       text: 'Connecting to Firebase...', 
-      icon: '🔄',
       bgColor: 'bg-yellow-900/30',
       borderColor: 'border-yellow-500/50'
     },
     connected: { 
       color: 'bg-green-500', 
       text: 'Firebase Connected - Real-time sync active', 
-      icon: '✓',
       bgColor: 'bg-green-900/30',
       borderColor: 'border-green-500/50'
     },
     disconnected: { 
       color: 'bg-red-500', 
       text: 'Disconnected from Firebase - Changes will not be saved', 
-      icon: '✗',
       bgColor: 'bg-red-900/30',
       borderColor: 'border-red-500/50'
     },
   };
 
-  const { color, text, icon } = statusConfig[status];
+  const { color, text } = statusConfig[status];
   
   const sizeConfig = {
     small: { dot: 'w-3 h-3', text: 'text-xs', padding: 'px-2 py-1' },
