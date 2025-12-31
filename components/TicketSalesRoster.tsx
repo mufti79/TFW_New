@@ -476,11 +476,11 @@ const TicketSalesRoster: React.FC<TicketSalesRosterProps> = ({ counters, ticketS
                   <button
                       onClick={handleSaveAllChanges}
                       disabled={!isDirty}
-                      className={`px-6 py-2 text-sm font-bold rounded-lg active:scale-95 transition-all ${
+                      className={
                         isDirty 
-                        ? 'bg-yellow-500 text-gray-900 hover:bg-yellow-400 animate-pulse' 
-                        : 'bg-green-600 text-white opacity-75 cursor-default'
-                      }`}
+                          ? 'px-6 py-2 text-sm font-bold rounded-lg active:scale-95 transition-all bg-yellow-500 text-gray-900 hover:bg-yellow-400 animate-pulse' 
+                          : 'px-6 py-2 text-sm font-bold rounded-lg transition-all bg-green-600 text-white opacity-75 cursor-default'
+                      }
                       title="Save all assignment changes to database"
                   >
                       {isDirty ? 'Save All Changes' : 'All Saved'}
