@@ -89,7 +89,3 @@ export function getDatabase(): firebase.database.Database | null {
   }
   return initializeFirebase();
 }
-
-// Export the database instance getter.
-// If not configured or failed to initialize, this will be null.
-export { database };
