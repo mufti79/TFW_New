@@ -4,7 +4,7 @@ import { RIDES, FLOORS, OPERATORS, TICKET_SALES_PERSONNEL, COUNTERS, RIDES_ARRAY
 import { RideWithCount, Ride, Operator, AttendanceRecord, Counter, CounterWithSales, HistoryRecord, PackageSalesRecord, AttendanceData, PackageSalesData, MaintenanceTicket } from './types';
 import { useAuth, Role } from './hooks/useAuth';
 import useFirebaseSync from './hooks/useFirebaseSync';
-import { isFirebaseConfigured, database } from './firebaseConfig';
+import { isFirebaseConfigured, getDatabase } from './firebaseConfig';
 import { NotificationContext, useNotification, NotificationType } from './imageStore';
 import NotificationComponent from './components/AttendanceCheckin';
 
@@ -76,6 +76,9 @@ type FirebaseObject<T extends { id: number }> = Record<number, Omit<T, 'id'>>;
 
 const AppContent: React.FC = () => {
     const { role, currentUser, login, logout } = useAuth();
+    
+    // Get database instance (will initialize if not already done)
+    const database = getDatabase();
     
     // On app load, check if a session reset is required from a daily rollover.
     // This is the most reliable way to ensure a clean state after a new day starts.

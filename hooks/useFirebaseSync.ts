@@ -1,5 +1,5 @@
 import { useState, useEffect, Dispatch, SetStateAction, useCallback, useRef } from 'react';
-import { database, isFirebaseConfigured } from '../firebaseConfig';
+import { getDatabase, isFirebaseConfigured } from '../firebaseConfig';
 
 function useFirebaseSync<T>(
   path: string,
@@ -10,6 +10,7 @@ function useFirebaseSync<T>(
   const initialValueRef = useRef(initialValue);
 
   useEffect(() => {
+    const database = getDatabase();
     if (!isFirebaseConfigured || !database) {
         return;
     }
@@ -46,6 +47,7 @@ function useFirebaseSync<T>(
   }, [path]);
 
   const setValue: Dispatch<SetStateAction<T>> = useCallback((value) => {
+    const database = getDatabase();
     if (!isFirebaseConfigured || !database) {
       console.warn(`Firebase is not configured. Data for "${path}" will not be saved.`);
       setStoredValue(value);

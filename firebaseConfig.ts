@@ -42,20 +42,50 @@ export const isFirebaseConfigured = firebaseConfig.projectId !== "YOUR_PROJECT_I
 // Initialize Firebase only if it's configured and not already initialized.
 // It uses the global `firebase` object from the script tags in index.html.
 let database: firebase.database.Database | null = null;
+let initializationAttempted = false;
 
-if (isFirebaseConfigured) {
+// Function to initialize Firebase, called after ensuring scripts are loaded
+function initializeFirebase() {
+  if (initializationAttempted) {
+    return database;
+  }
+  
+  initializationAttempted = true;
+  
+  if (!isFirebaseConfigured) {
+    console.warn('Firebase is not configured');
+    return null;
+  }
+
   try {
+    // Check if firebase global object exists
+    if (typeof firebase === 'undefined') {
+      console.error('Firebase SDK not loaded. Make sure script tags are in index.html');
+      return null;
+    }
+
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
+      console.log('Firebase initialized successfully');
     }
     database = firebase.database();
+    return database;
   } catch (error) {
     console.error('Failed to initialize Firebase:', error);
     database = null;
+    return null;
   }
 }
 
-// Export the database instance.
-// If not configured, this will be null. App.tsx handles this by showing an error screen
-// and preventing the execution of code that would use `database`.
-export { database };
+// Try to initialize immediately if firebase is already available
+if (isFirebaseConfigured && typeof firebase !== 'undefined') {
+  initializeFirebase();
+}
+
+// Function to get database instance, initializing if needed
+export function getDatabase(): firebase.database.Database | null {
+  if (database) {
+    return database;
+  }
+  return initializeFirebase();
+}

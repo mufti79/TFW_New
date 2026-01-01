@@ -109,7 +109,48 @@ Both applications now share a single Firebase database with real-time synchroniz
 - `App.tsx` - Added database null checks in 15+ operations
 - `hooks/useFirebaseSync.ts` - Added database null checks in sync operations
 
-### 5. Export/Import Feature for Cross-Repository Sync (December 29, 2024)
+### 5. Firebase Initialization Race Condition Fix (January 1, 2026)
+**Problem:** Users continued experiencing "Failed to save assignments. Check connection." error despite null checks being in place.
+
+**Root Cause:** 
+- Race condition in Firebase initialization
+- The `firebaseConfig.ts` module attempted to initialize Firebase immediately when loaded
+- The global `firebase` object from script tags in `index.html` might not be available yet
+- This caused `database` to remain `null` even though Firebase SDK would load later
+
+**Solution Implemented:**
+
+**File:** `firebaseConfig.ts`
+- Implemented lazy initialization pattern with `getDatabase()` function
+- Added check for `typeof firebase === 'undefined'` to detect if SDK is loaded
+- Used `initializationAttempted` flag to ensure initialization only happens once
+- Attempts immediate initialization if Firebase is already available
+- Returns `null` with proper error logging if SDK isn't loaded
+- Removed direct `database` export to enforce lazy initialization pattern
+
+**File:** `App.tsx`
+- Updated to import `getDatabase` instead of `database`
+- Calls `getDatabase()` at component initialization to get database instance
+- Creates local `database` variable for use throughout component
+
+**File:** `hooks/useFirebaseSync.ts`
+- Updated to import `getDatabase` instead of `database`
+- Calls `getDatabase()` in both `useEffect` and `setValue` callbacks
+- Ensures database is initialized before attempting any operations
+
+**Benefits:**
+- Eliminates race condition by initializing Firebase only when needed
+- Properly handles case where Firebase SDK loads after module evaluation
+- Maintains singleton pattern to avoid multiple initializations
+- Provides clear error messages for debugging
+- No performance impact as initialization still happens early in app lifecycle
+
+**Modified Files:**
+- `firebaseConfig.ts` - Implemented lazy initialization with getDatabase()
+- `App.tsx` - Updated to use getDatabase()
+- `hooks/useFirebaseSync.ts` - Updated to use getDatabase()
+
+### 6. Export/Import Feature for Cross-Repository Sync (December 29, 2024)
 **Problem:** Need an easy way to transfer assignment data between TFW_New and TFW-OPS-Sales repositories for backup, migration, or syncing purposes.
 
 **Solution Implemented:**
@@ -145,7 +186,7 @@ Both applications now share a single Firebase database with real-time synchroniz
 3. Use the "Import" button in the other repository to load the exported file
 4. Assignments are seamlessly transferred between repositories
 
-### 6. Clear All Button Auto-Save Fix (December 30, 2024)
+### 7. Clear All Button Auto-Save Fix (December 30, 2024)
 **Problem:** The "Clear All" button in Assignment views only cleared local state without saving to Firebase. Users expected this action to persist immediately so other repositories (like TFW-OPS-Sales) could sync the cleared roster data.
 
 **Root Cause:**
@@ -177,7 +218,7 @@ Both applications now share a single Firebase database with real-time synchroniz
 - `components/AssignmentView.tsx` - Added Firebase save to handleClearAll
 - `components/TicketSalesAssignmentView.tsx` - Added Firebase save to handleClearAll
 
-### 7. Previous Cleanup (Earlier)
+### 8. Previous Cleanup (Earlier)
 **Deleted:**
 - `tfwOpsSalesConfig.ts` - Separate database config (no longer needed)
 - `syncUtils.ts` - Sync utility functions (no longer needed)
