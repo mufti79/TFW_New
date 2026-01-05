@@ -102,6 +102,16 @@ const AssignmentView: React.FC<AssignmentViewProps> = ({ rides, operators, daily
     onSave(selectedDate, assignments);
   };
   
+  const handleSync = () => {
+    // Sync button directly saves assignments to Firebase/TFW-OPS-Sales database
+    if (!isDirty) {
+      showNotification('No changes to sync. All assignments are up to date.', 'info');
+      return;
+    }
+    onSave(selectedDate, assignments);
+    showNotification('Syncing assignments to database...', 'info', 2000);
+  };
+  
   const handleClearAll = () => {
     if (window.confirm("Are you sure you want to clear all of today's assignments?")) {
         setAssignments({});
@@ -350,6 +360,20 @@ const AssignmentView: React.FC<AssignmentViewProps> = ({ rides, operators, daily
                   Clear All
               </button>
               <button
+                  onClick={handleSync}
+                  disabled={!isDirty || connectionStatus !== 'connected'}
+                  className={`w-full sm:w-auto px-4 py-2 text-sm font-bold rounded-lg active:scale-95 transition-all ${
+                    connectionStatus !== 'connected'
+                    ? 'bg-gray-600 text-gray-400 cursor-not-allowed opacity-50'
+                    : isDirty 
+                    ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                    : 'bg-purple-600 text-white opacity-50 cursor-default'
+                }`}
+                  title="Sync assignments to TFW-OPS-Sales database"
+              >
+                  Sync
+              </button>
+              <button
                   onClick={handleSave}
                   disabled={!isDirty || connectionStatus !== 'connected'}
                   className={`w-full sm:w-auto px-6 py-2 text-sm font-bold rounded-lg active:scale-95 transition-all ${
@@ -369,7 +393,7 @@ const AssignmentView: React.FC<AssignmentViewProps> = ({ rides, operators, daily
           <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700">
             <div className="p-4 bg-gray-700/50 text-gray-300">
                 <p>Assign one or more operators below, or use the "Import" button to upload an Excel/CSV file.</p>
-                <p className="text-sm text-gray-400">Use "Export" to download current assignments in CSV format for syncing with TFW-OPS-Sales. Use "Copy from Date" to quickly replicate assignments from another date. The exported file has two columns: Ride Name and Operator Name(s), with multiple operators separated by commas.</p>
+                <p className="text-sm text-gray-400">Use "Export" to download current assignments in CSV format for syncing with TFW-OPS-Sales. Use "Sync" to immediately save imported or modified assignments to the database. Use "Copy from Date" to quickly replicate assignments from another date. The exported file has two columns: Ride Name and Operator Name(s), with multiple operators separated by commas.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-700">
                 {rides.map((ride) => {
