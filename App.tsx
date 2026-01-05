@@ -77,9 +77,6 @@ type FirebaseObject<T extends { id: number }> = Record<number, Omit<T, 'id'>>;
 const AppContent: React.FC = () => {
     const { role, currentUser, login, logout } = useAuth();
     
-    // Get database instance (will initialize if not already done)
-    const database = getDatabase();
-    
     // On app load, check if a session reset is required from a daily rollover.
     // This is the most reliable way to ensure a clean state after a new day starts.
     useEffect(() => {
@@ -168,6 +165,7 @@ const AppContent: React.FC = () => {
     const [isLogoLoading, setIsLogoLoading] = useState(isFirebaseConfigured);
 
     useEffect(() => {
+        const database = getDatabase();
         if (!isFirebaseConfigured || !database) return;
         const logoRef = database.ref('config/appLogo');
         const listener = logoRef.on('value', (snapshot) => {
@@ -184,6 +182,7 @@ const AppContent: React.FC = () => {
     }, []);
 
     const handleLogoChange = useCallback((newLogo: string | null) => {
+        const database = getDatabase();
         if (!isFirebaseConfigured) {
             showNotification("Cannot save logo, Firebase is not configured.", "error");
             return;
@@ -261,6 +260,7 @@ const AppContent: React.FC = () => {
     useEffect(() => { setCurrentView(getInitialViewForRole(role)); }, [role, getInitialViewForRole]);
 
     useEffect(() => {
+        const database = getDatabase();
         if (isFirebaseConfigured && database) {
             const connectedRef = database.ref('.info/connected');
             const listener = connectedRef.on('value', (snap) => {
@@ -274,6 +274,7 @@ const AppContent: React.FC = () => {
     
     const logAction = useCallback((action: string, details: string) => {
         if (!currentUser) return;
+        const database = getDatabase();
         const newId = Date.now();
         const newRecord: Omit<HistoryRecord, 'id'> = {
             timestamp: new Date().toISOString(), user: currentUser.name, action, details,
@@ -349,6 +350,7 @@ const AppContent: React.FC = () => {
     };
 
     const handleCountChange = useCallback((rideId: number, newCount: number) => {
+        const database = getDatabase();
         const rideName = rides.find(r => r.id === rideId)?.name || 'Unknown Ride';
         const oldCount = dailyCounts[selectedDate]?.[rideId] || 0;
         if (oldCount === newCount) return;
@@ -366,6 +368,7 @@ const AppContent: React.FC = () => {
     }, [dailyCounts, rides, selectedDate, logAction, showNotification]);
 
     const handleSalesChange = useCallback((counterId: number, newCount: number) => {
+        const database = getDatabase();
         const counterName = counters.find(c => c.id === counterId)?.name || 'Unknown Counter';
         const oldSales = ticketSalesData[today]?.[counterId] || 0;
         if (oldSales === newCount) return;
@@ -384,6 +387,7 @@ const AppContent: React.FC = () => {
 
     const handleResetCounts = useCallback(() => {
         if (window.confirm("Are you sure you want to reset all of today's guest counts to zero? This cannot be undone.")) {
+            const database = getDatabase();
             if (isFirebaseConfigured && database) {
                 database.ref(`data/dailyCounts/${today}`).remove()
                     .then(() => {
@@ -399,6 +403,7 @@ const AppContent: React.FC = () => {
 
     const handleResetSales = useCallback(() => {
         if (window.confirm("Are you sure you want to reset all of today's ticket sales to zero? This cannot be undone.")) {
+            const database = getDatabase();
             if (isFirebaseConfigured && database) {
                 database.ref(`data/ticketSalesData/${today}`).remove()
                     .then(() => {
@@ -419,6 +424,7 @@ const AppContent: React.FC = () => {
     }, [setRidesData, rides, logAction]);
     
     const handleClockIn = useCallback((attendedBriefing: boolean, briefingTime: string | null) => {
+        const database = getDatabase();
         if (!currentUser || !isFirebaseConfigured || !database) return;
 
         const clockInDate = new Date().toISOString().split('T')[0];
@@ -437,6 +443,7 @@ const AppContent: React.FC = () => {
     }, [currentUser, logAction, logout, showNotification]);
 
     const handleSavePackageSales = useCallback((salesData: Omit<PackageSalesRecord, 'date' | 'personnelId'>) => {
+        const database = getDatabase();
         if (!currentUser || !isFirebaseConfigured || !database) return;
         
         // Learn new categories from the submitted data
@@ -465,6 +472,7 @@ const AppContent: React.FC = () => {
     }, [currentUser, selectedDate, logAction, showNotification, otherSalesCategories, setOtherSalesCategories]);
 
     const handleEditPackageSales = useCallback((date: string, personnelId: number, salesData: Omit<PackageSalesRecord, 'date' | 'personnelId'>) => {
+        const database = getDatabase();
         if (!currentUser || !isFirebaseConfigured || !database) return;
         const personnelName = ticketSalesPersonnel.find(p => p.id === personnelId)?.name || 'Unknown Personnel';
 
@@ -571,6 +579,7 @@ const AppContent: React.FC = () => {
             return;
         }
 
+        const database = getDatabase();
         if (!isFirebaseConfigured || !database) {
             showNotification("Firebase is not configured. Cannot perform reset.", "error");
             return;
@@ -654,6 +663,7 @@ const AppContent: React.FC = () => {
     };
 
     const handleSaveAssignments = (date: string, assignmentsForDate: Record<string, number[]>) => {
+        const database = getDatabase();
         if (!isFirebaseConfigured) {
             showNotification('Cannot save assignments, Firebase is not configured.', 'error');
             return;
@@ -678,6 +688,7 @@ const AppContent: React.FC = () => {
     };
     
     const handleSaveTicketSalesAssignments = (date: string, assignmentsForDate: Record<string, number[]>) => {
+        const database = getDatabase();
         if (!isFirebaseConfigured) {
             showNotification('Cannot save assignments, Firebase is not configured.', 'error');
             return;
@@ -703,6 +714,7 @@ const AppContent: React.FC = () => {
 
     const handleClearHistory = () => {
         if (window.confirm("Are you sure you want to permanently delete all history logs? This action cannot be undone.")) {
+            const database = getDatabase();
             if (isFirebaseConfigured && database) {
                 database.ref('data/historyLog').remove()
                     .catch(e => {
@@ -717,6 +729,7 @@ const AppContent: React.FC = () => {
         if (!oldName || !newName || oldName === newName) return;
         if (!window.confirm(`Are you sure you want to rename "${oldName}" to "${newName}"? This will update all historical sales records.`)) return;
 
+        const database = getDatabase();
         // 1. Update the config list
         const newCategories = otherSalesCategories.map(c => c === oldName ? newName : c);
         setOtherSalesCategories([...new Set(newCategories)].sort());
@@ -787,6 +800,7 @@ const AppContent: React.FC = () => {
         if (obsoleteRides.length === 0) return;
         if (!window.confirm(`Are you sure you want to permanently remove ${obsoleteRides.length} obsolete ride(s) from the database? This cannot be undone.`)) return;
 
+        const database = getDatabase();
         if (isFirebaseConfigured && database) {
             const updates: { [key: string]: null } = {};
             obsoleteRides.forEach(ride => {
@@ -805,6 +819,7 @@ const AppContent: React.FC = () => {
     }, [obsoleteRides, logAction, showNotification]);
 
     const handleReportProblem = useCallback((rideId: number, problem: string) => {
+        const database = getDatabase();
         if (!currentUser || !isFirebaseConfigured || !database || !problem.trim()) return;
 
         const ride = rides.find(r => r.id === rideId);
@@ -835,6 +850,7 @@ const AppContent: React.FC = () => {
     }, [currentUser, today, rides, logAction, showNotification]);
 
     const handleUpdateTicketStatus = useCallback((ticket: MaintenanceTicket, newStatus: 'in-progress' | 'solved', technician: Operator, helpers?: Operator[]) => {
+        const database = getDatabase();
         if (!isFirebaseConfigured || !database) return;
         
         const updates: Partial<MaintenanceTicket> = { status: newStatus };
@@ -886,7 +902,8 @@ const AppContent: React.FC = () => {
     const handleClearMaintenanceTickets = () => {
         if (!window.confirm("Are you sure you want to permanently delete ALL maintenance tickets? This action cannot be undone.")) return;
 
-        if (isFirebaseConfigured) {
+        const database = getDatabase();
+        if (isFirebaseConfigured && database) {
             // FIX: Changed from remove() to set({}) to reliably clear the data without triggering re-initialization from the sync hook.
             database.ref('data/maintenanceTickets').set({})
                 .then(() => {
@@ -903,7 +920,8 @@ const AppContent: React.FC = () => {
     const handleClearSolvedTickets = useCallback((date: string) => {
         if (!window.confirm(`Are you sure you want to permanently clear all SOLVED maintenance tickets for ${date}? This cannot be undone.`)) return;
 
-        if (isFirebaseConfigured) {
+        const database = getDatabase();
+        if (isFirebaseConfigured && database) {
             const dateTicketsRef = database.ref(`data/maintenanceTickets/${date}`);
             dateTicketsRef.once('value', (snapshot) => {
                 const ticketsOnDate = snapshot.val();
